@@ -4,40 +4,32 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
 
-  // FLASH SCREEN
   const [started, setStarted] = useState(false);
 
-  // DOCUMENT TYPE
   const [documentType, setDocumentType] = useState("");
 
-  // DOCUMENT FILE
   const [frontFile, setFrontFile] = useState(null);
   const [frontPreview, setFrontPreview] = useState("");
 
-  // UPLOAD STATES
   const [uploadProgress, setUploadProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadCompleted, setUploadCompleted] = useState(false);
 
-  // NEW STATE
   const [isDocumentUploaded, setIsDocumentUploaded] = useState(false);
 
-  // ALLOWED FILE TYPES
   const allowedTypes = [
     "image/jpeg",
     "image/png",
     "application/pdf"
   ];
 
-  // FILE HANDLER
   const handleFrontFileChange = (e) => {
 
     const file = e.target.files[0];
 
     if (!file) return;
 
-    // VALIDATION
     if (!allowedTypes.includes(file.type)) {
 
       toast.error("Only JPG, PNG and PDF files are allowed");
@@ -47,20 +39,17 @@ function App() {
       return;
     }
 
-    // RESET STATES
     setUploadProgress(0);
     setUploadCompleted(false);
     setStatusText("");
     setIsDocumentUploaded(false);
 
-    // SET FILE
     setFrontFile(file);
     setFrontPreview(URL.createObjectURL(file));
 
     toast.success("Document selected successfully");
   };
 
-  // UPLOAD HANDLER
   const handleUpload = () => {
 
     if (!documentType) {
@@ -75,7 +64,6 @@ function App() {
       return;
     }
 
-    // PREVENT RE-UPLOAD
     if (isDocumentUploaded) {
       return;
     }
@@ -93,7 +81,6 @@ function App() {
 
       progress += Math.floor(Math.random() * 12);
 
-      // STATUS CHANGES
       if (progress > 20) {
         setStatusText("Processing Document...");
       }
@@ -124,7 +111,6 @@ function App() {
 
           setUploadCompleted(true);
 
-          // DOCUMENT UPLOADED
           setIsDocumentUploaded(true);
 
           toast.success("KYC Document Uploaded Successfully");
@@ -137,7 +123,6 @@ function App() {
     }, 350);
   };
 
-  // RE-UPLOAD HANDLER
   const handleReupload = () => {
 
     setFrontFile(null);
@@ -152,7 +137,6 @@ function App() {
     toast.info("Please upload document again");
   };
 
-  // FLASH SCREEN
   if (!started) {
 
     return (
@@ -191,14 +175,12 @@ function App() {
     );
   }
 
-  // MAIN SCREEN
   return (
 
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-6">
 
       <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-8">
 
-        {/* HEADER */}
         <div className="text-center">
 
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow">
@@ -217,7 +199,6 @@ function App() {
 
         </div>
 
-        {/* DOCUMENT TYPE */}
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -238,7 +219,6 @@ function App() {
 
         </div>
 
-        {/* DOCUMENT UPLOAD */}
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -266,7 +246,6 @@ function App() {
 
         </div>
 
-        {/* DOCUMENT PREVIEW */}
         {frontFile && (
 
           <div className="mt-6">
@@ -291,7 +270,6 @@ function App() {
 
             </div>
 
-            {/* IMAGE PREVIEW */}
             {frontFile.type.startsWith("image/") ? (
 
               <div className="border rounded-2xl overflow-hidden bg-gray-100 shadow">
@@ -316,7 +294,6 @@ function App() {
           </div>
         )}
 
-        {/* PROGRESS */}
         {uploadProgress > 0 && (
 
           <div className="mt-8">
@@ -345,7 +322,6 @@ function App() {
           </div>
         )}
 
-        {/* SUCCESS BOX */}
         {uploadCompleted && (
 
           <div className="mt-8 bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
@@ -365,7 +341,6 @@ function App() {
           </div>
         )}
 
-        {/* INFO BOX */}
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
 
           <p className="text-sm text-yellow-700 leading-6">
@@ -375,7 +350,6 @@ function App() {
 
         </div>
 
-        {/* UPLOAD BUTTON */}
         <button
           onClick={handleUpload}
           disabled={isUploading || isDocumentUploaded}
@@ -397,7 +371,6 @@ function App() {
 
         </button>
 
-        {/* RE-UPLOAD BUTTON */}
         {isDocumentUploaded && (
 
           <button
@@ -409,7 +382,6 @@ function App() {
 
         )}
 
-        {/* NEXT BUTTON */}
         {uploadCompleted && (
 
           <button
