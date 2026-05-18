@@ -1,8 +1,21 @@
 import React, { useState } from "react";
+import {
+  useNavigate,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+
 import { ToastContainer, toast } from "react-toastify";
+
 import "react-toastify/dist/ReactToastify.css";
 
-function App() {
+import KYCVerificationPage from "./pages/KYCVerificationPage";
+import RecordingPreview from "./pages/RecordingPreview";
+
+function DocumentUpload() {
+
+  const navigate = useNavigate();
 
   const [started, setStarted] = useState(false);
 
@@ -13,7 +26,9 @@ function App() {
 
   const [uploadProgress, setUploadProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
+
   const [isUploading, setIsUploading] = useState(false);
+
   const [uploadCompleted, setUploadCompleted] = useState(false);
 
   const [isDocumentUploaded, setIsDocumentUploaded] = useState(false);
@@ -41,10 +56,13 @@ function App() {
 
     setUploadProgress(0);
     setUploadCompleted(false);
+
     setStatusText("");
+
     setIsDocumentUploaded(false);
 
     setFrontFile(file);
+
     setFrontPreview(URL.createObjectURL(file));
 
     toast.success("Document selected successfully");
@@ -55,20 +73,24 @@ function App() {
     if (!documentType) {
 
       toast.error("Please select document type");
+
       return;
     }
 
     if (!frontFile) {
 
       toast.error("Please upload document");
+
       return;
     }
 
     if (isDocumentUploaded) {
+
       return;
     }
 
     setIsUploading(true);
+
     setUploadCompleted(false);
 
     setUploadProgress(0);
@@ -126,15 +148,23 @@ function App() {
   const handleReupload = () => {
 
     setFrontFile(null);
+
     setFrontPreview("");
 
     setUploadProgress(0);
+
     setStatusText("");
 
     setUploadCompleted(false);
+
     setIsDocumentUploaded(false);
 
     toast.info("Please upload document again");
+  };
+
+  const handleSelfieVerification = () => {
+
+    navigate("/kyc-verification");
   };
 
   if (!started) {
@@ -159,9 +189,55 @@ function App() {
 
           <button
             onClick={() => setStarted(true)}
-            className="mt-8 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition w-full shadow-lg"
+            className="
+              mt-8
+              w-full
+              relative
+              overflow-hidden
+              py-4
+              rounded-2xl
+              text-lg
+              font-semibold
+              text-white
+              transition-all
+              duration-300
+              bg-gradient-to-r
+              from-sky-500
+              via-blue-500
+              to-blue-600
+              hover:from-sky-600
+              hover:via-blue-600
+              hover:to-blue-700
+              shadow-lg
+              hover:shadow-2xl
+              hover:-translate-y-0.5
+              active:scale-[0.98]
+              border
+              border-blue-300
+            "
           >
-            Start Verification
+
+            <span className="
+              absolute
+              inset-0
+              bg-white/10
+              opacity-0
+              hover:opacity-100
+              transition
+            "></span>
+
+            <span className="relative flex items-center justify-center gap-2">
+
+              <span className="text-xl">
+                
+              </span>
+
+              <span>
+                Start Verification
+              </span>
+
+            </span>
+
           </button>
 
         </div>
@@ -296,47 +372,43 @@ function App() {
 
         {uploadProgress > 0 && (
 
-          <div className="mt-8">
+          <div className="mt-8 border border-sky-100 bg-sky-50 rounded-2xl p-5">
 
-            <div className="flex justify-between text-sm mb-2">
+            <div className="flex justify-between items-center mb-3">
 
-              <span className="font-medium text-gray-700">
-                {statusText}
-              </span>
+              <div className="flex items-center gap-2">
 
-              <span className="font-medium text-blue-600">
+                <div className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
+
+                <span className="font-medium text-sky-800">
+                  {statusText}
+                </span>
+
+              </div>
+
+              <span className="font-semibold text-sky-700">
                 {uploadProgress}%
               </span>
 
             </div>
 
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-sky-200">
 
               <div
-                className="bg-blue-600 h-3 transition-all duration-300"
+                className="
+                  h-full
+                  rounded-full
+                  bg-gradient-to-r
+                  from-sky-400
+                  via-sky-500
+                  to-blue-600
+                  transition-all
+                  duration-500
+                "
                 style={{ width: `${uploadProgress}%` }}
               ></div>
 
             </div>
-
-          </div>
-        )}
-
-        {uploadCompleted && (
-
-          <div className="mt-8 bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
-
-            <div className="text-4xl mb-3">
-              ✅
-            </div>
-
-            <p className="text-green-700 font-bold text-lg">
-              Document Uploaded Successfully
-            </p>
-
-            <p className="text-sm text-green-600 mt-2">
-              Your document has been securely verified.
-            </p>
 
           </div>
         )}
@@ -350,45 +422,69 @@ function App() {
 
         </div>
 
-        <button
-          onClick={handleUpload}
-          disabled={isUploading || isDocumentUploaded}
-          className={`w-full py-4 rounded-2xl mt-8 text-lg font-semibold transition text-white shadow-lg
-          
-          ${isUploading || isDocumentUploaded
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"}
-          `}
-        >
-
-          {
-            isUploading
-              ? "Uploading Document..."
-              : isDocumentUploaded
-                ? "Uploaded ✅"
-                : "Upload Document"
-          }
-
-        </button>
-
-        {isDocumentUploaded && (
+        {!uploadCompleted && (
 
           <button
-            onClick={handleReupload}
-            className="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 py-4 rounded-2xl mt-4 text-lg font-semibold transition"
+            onClick={handleUpload}
+            disabled={isUploading}
+            className={`
+              w-full
+              py-4
+              rounded-2xl
+              mt-8
+              text-lg
+              font-semibold
+              transition-all
+              duration-300
+              border
+              shadow-md
+          
+              ${isUploading
+                ? `
+                  bg-gray-200
+                  text-gray-500
+                  border-gray-300
+                  cursor-not-allowed
+                `
+                : `
+                  border-sky-400
+                  bg-sky-50
+                  text-sky-700
+                  hover:bg-sky-100
+                  hover:shadow-lg
+                `
+              }
+            `}
           >
-            Re-upload Document
-          </button>
 
+            {
+              isUploading
+                ? "Uploading Document..."
+                : "Upload Document"
+            }
+
+          </button>
         )}
 
         {uploadCompleted && (
 
-          <button
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl mt-5 text-lg font-semibold transition shadow-lg"
-          >
-            Proceed to Selfie Verification
-          </button>
+          <div className="mt-8">
+
+            <button
+              onClick={handleSelfieVerification}
+              className="w-full border border-sky-400 bg-sky-50 text-sky-700 hover:bg-sky-100 py-4 rounded-2xl text-lg font-semibold transition"
+            >
+              Proceed to Selfie Verification
+            </button>
+
+            <button
+              onClick={handleReupload}
+              className="w-full text-sm text-gray-500 hover:text-blue-600 mt-4 transition"
+            >
+              Re-upload Document
+            </button>
+
+          </div>
         )}
 
       </div>
@@ -399,6 +495,36 @@ function App() {
       />
 
     </div>
+  );
+}
+
+function App() {
+
+  return (
+
+    <Routes>
+
+      <Route
+        path="/"
+        element={<DocumentUpload />}
+      />
+
+      <Route
+        path="/kyc-verification"
+        element={<KYCVerificationPage />}
+      />
+
+      <Route
+        path="/recording"
+        element={<RecordingPreview />}
+      />
+
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
+
+    </Routes>
   );
 }
 
