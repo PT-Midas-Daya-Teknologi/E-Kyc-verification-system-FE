@@ -1,8 +1,11 @@
 import React, { useState } from "react";
+
+import axios from "axios";
+
 import {
   useNavigate,
   Routes,
-  Route,
+ Route,
   Navigate
 } from "react-router-dom";
 
@@ -10,21 +13,34 @@ import { ToastContainer, toast } from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
 
-import KYCVerificationPage from "./pages/KYCVerificationPage";
-import RecordingPreview from "./pages/RecordingPreview";
 
-function DocumentUpload() {
+
+function ProtectedRoute({ allowed, children }) {
+
+  if (!allowed) {
+
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+function DocumentUpload({ setSelfieAllowed }) {
 
   const navigate = useNavigate();
 
   const [started, setStarted] = useState(false);
 
+  const [token, setToken] = useState("");
+
   const [documentType, setDocumentType] = useState("");
 
   const [frontFile, setFrontFile] = useState(null);
+
   const [frontPreview, setFrontPreview] = useState("");
 
   const [uploadProgress, setUploadProgress] = useState(0);
+
   const [statusText, setStatusText] = useState("");
 
   const [isUploading, setIsUploading] = useState(false);
@@ -35,9 +51,26 @@ function DocumentUpload() {
 
   const allowedTypes = [
     "image/jpeg",
-    "image/png",
-    "application/pdf"
+    "image/png"
   ];
+
+  const startKycSession = async () => {
+
+    try {
+
+      const response = await axios.post(
+        "http://localhost:8080/kyc/initiate"
+      );
+
+      const generatedToken = response.data.body.token;
+
+      setToken(generatedToken);
+
+    } catch (error) {
+
+      toast.error("Failed to initiate KYC session");
+    }
+  };
 
   const handleFrontFileChange = (e) => {
 
@@ -47,7 +80,18 @@ function DocumentUpload() {
 
     if (!allowedTypes.includes(file.type)) {
 
-      toast.error("Only JPG, PNG and PDF files are allowed");
+      toast.error("Only JPG and PNG image files are allowed");
+
+      e.target.value = null;
+
+      return;
+    }
+
+    const maxFileSize = 500 * 1024;
+
+    if (file.size > maxFileSize) {
+
+      toast.error("Maximum allowed image size is 500 KB");
 
       e.target.value = null;
 
@@ -55,6 +99,7 @@ function DocumentUpload() {
     }
 
     setUploadProgress(0);
+
     setUploadCompleted(false);
 
     setStatusText("");
@@ -68,81 +113,149 @@ function DocumentUpload() {
     toast.success("Document selected successfully");
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
 
-    if (!documentType) {
+    try {
 
-      toast.error("Please select document type");
+      if (!documentType) {
 
-      return;
+        toast.error("Please select document type");
+
+        return;
+      }
+
+      if (!frontFile) {
+
+        toast.error("Please upload document");
+
+        return;
+      }
+
+      if (!token) {
+
+        toast.error("KYC session not started");
+
+        return;
+      }
+
+      if (isDocumentUploaded) {
+
+        return;
+      }
+
+      setIsUploading(true);
+
+      setUploadCompleted(false);
+
+      setUploadProgress(0);
+
+      setStatusText("Uploading Document Securely...");
+
+      const formData = new FormData();
+
+      let backendDocumentType = "";
+
+      if (documentType === "Aadhar Card") {
+        backendDocumentType = "AADHAR_CARD";
+      }
+
+      if (documentType === "PAN Card") {
+        backendDocumentType = "PAN_CARD";
+      }
+
+      if (documentType === "Passport") {
+        backendDocumentType = "PASSPORT";
+      }
+
+      if (documentType === "Driving License") {
+        backendDocumentType = "DRIVING_LICENSE";
+      }
+
+      formData.append("file", frontFile);
+
+      formData.append("documentType", backendDocumentType);
+
+      await axios.post(
+        "http://localhost:8080/kyc/upload",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          },
+
+          onUploadProgress: (progressEvent) => {
+
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+
+            setUploadProgress(percentCompleted);
+
+            if (percentCompleted > 10) {
+              setStatusText("Uploading Document Securely...");
+            }
+
+            if (percentCompleted > 25) {
+              setStatusText("Processing Document...");
+            }
+
+            if (percentCompleted > 45) {
+              setStatusText("Running OCR Extraction...");
+            }
+
+            if (percentCompleted > 65) {
+              setStatusText("Validating Document Authenticity...");
+            }
+
+            if (percentCompleted > 85) {
+              setStatusText("Final Verification...");
+            }
+          }
+        }
+      );
+
+      setUploadProgress(100);
+
+      setStatusText("Finalizing Verification...");
+
+      setTimeout(() => {
+
+        setIsUploading(false);
+
+        setUploadCompleted(true);
+
+        setIsDocumentUploaded(true);
+
+        setSelfieAllowed(true);
+
+        setUploadProgress(0);
+
+        setStatusText("");
+
+        toast.success("KYC Document Uploaded Successfully");
+
+      }, 1200);
+
+    } catch (error) {
+
+      setIsUploading(false);
+
+      setUploadCompleted(false);
+
+      setUploadProgress(0);
+
+      setStatusText("");
+
+      if (error.response?.data?.errors?.length > 0) {
+
+        toast.error(error.response.data.errors[0].message);
+
+      } else {
+
+        toast.error("Backend connection failed");
+      }
     }
-
-    if (!frontFile) {
-
-      toast.error("Please upload document");
-
-      return;
-    }
-
-    if (isDocumentUploaded) {
-
-      return;
-    }
-
-    setIsUploading(true);
-
-    setUploadCompleted(false);
-
-    setUploadProgress(0);
-
-    setStatusText("Uploading Document Securely...");
-
-    let progress = 0;
-
-    const interval = setInterval(() => {
-
-      progress += Math.floor(Math.random() * 12);
-
-      if (progress > 20) {
-        setStatusText("Processing Document...");
-      }
-
-      if (progress > 40) {
-        setStatusText("Running OCR Extraction...");
-      }
-
-      if (progress > 65) {
-        setStatusText("Validating Document Authenticity...");
-      }
-
-      if (progress > 85) {
-        setStatusText("Final Verification...");
-      }
-
-      if (progress >= 100) {
-
-        progress = 100;
-
-        clearInterval(interval);
-
-        setStatusText("Document Uploaded Successfully");
-
-        setTimeout(() => {
-
-          setIsUploading(false);
-
-          setUploadCompleted(true);
-
-          setIsDocumentUploaded(true);
-
-          toast.success("KYC Document Uploaded Successfully");
-
-        }, 800);
-      }
-
-      setUploadProgress(progress);
-
-    }, 350);
   };
 
   const handleReupload = () => {
@@ -158,6 +271,8 @@ function DocumentUpload() {
     setUploadCompleted(false);
 
     setIsDocumentUploaded(false);
+
+    setSelfieAllowed(false);
 
     toast.info("Please upload document again");
   };
@@ -188,7 +303,12 @@ function DocumentUpload() {
           </p>
 
           <button
-            onClick={() => setStarted(true)}
+            onClick={() => {
+
+              setStarted(true);
+
+              startKycSession();
+            }}
             className="
               mt-8
               w-full
@@ -217,20 +337,7 @@ function DocumentUpload() {
             "
           >
 
-            <span className="
-              absolute
-              inset-0
-              bg-white/10
-              opacity-0
-              hover:opacity-100
-              transition
-            "></span>
-
             <span className="relative flex items-center justify-center gap-2">
-
-              <span className="text-xl">
-                
-              </span>
 
               <span>
                 Start Verification
@@ -305,7 +412,7 @@ function DocumentUpload() {
 
             <input
               type="file"
-              accept=".jpg,.jpeg,.png,.pdf"
+              accept=".jpg,.jpeg,.png"
               onChange={handleFrontFileChange}
               className="mb-4"
             />
@@ -315,7 +422,7 @@ function DocumentUpload() {
             </p>
 
             <p className="text-sm text-gray-500 mt-2">
-              JPG, PNG or PDF only
+              JPG and PNG only (Max 500 KB)
             </p>
 
           </div>
@@ -346,31 +453,20 @@ function DocumentUpload() {
 
             </div>
 
-            {frontFile.type.startsWith("image/") ? (
+            <div className="border rounded-2xl overflow-hidden bg-gray-100 shadow">
 
-              <div className="border rounded-2xl overflow-hidden bg-gray-100 shadow">
-
-                <img
-                  src={frontPreview}
-                  alt="document-preview"
-                  className="w-full h-80 object-contain"
-                />
-
-              </div>
-
-            ) : (
-
-              <iframe
+              <img
                 src={frontPreview}
-                title="document-pdf"
-                className="w-full h-96 rounded-2xl border"
+                alt="document-preview"
+                className="w-full h-80 object-contain"
               />
-            )}
+
+            </div>
 
           </div>
         )}
 
-        {uploadProgress > 0 && (
+        {isUploading && uploadProgress > 0 && (
 
           <div className="mt-8 border border-sky-100 bg-sky-50 rounded-2xl p-5">
 
@@ -500,24 +596,23 @@ function DocumentUpload() {
 
 function App() {
 
+  const [selfieAllowed, setSelfieAllowed] = useState(false);
+
   return (
 
     <Routes>
 
       <Route
         path="/"
-        element={<DocumentUpload />}
+        element={
+          <DocumentUpload
+            setSelfieAllowed={setSelfieAllowed}
+          />
+        }
       />
 
-      <Route
-        path="/kyc-verification"
-        element={<KYCVerificationPage />}
-      />
-
-      <Route
-        path="/recording"
-        element={<RecordingPreview />}
-      />
+      
+      
 
       <Route
         path="*"
