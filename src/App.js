@@ -13,6 +13,8 @@ import { ToastContainer, toast } from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
 
+import FaceDetection from "./FaceDetection";
+
 
 
 function ProtectedRoute({ allowed, children }) {
@@ -57,18 +59,33 @@ function DocumentUpload({ setSelfieAllowed }) {
   const startKycSession = async () => {
 
     try {
-
+  
       const response = await axios.post(
         "http://localhost:8080/kyc/initiate"
       );
-
-      const generatedToken = response.data.body.token;
-
-      setToken(generatedToken);
-
+  
+      if (response.status === 200 && response.data?.body?.token) {
+  
+        const generatedToken = response.data.body.token;
+  
+        setToken(generatedToken);
+  
+        setStarted(true);
+  
+        toast.success("KYC session started successfully");
+  
+      } else {
+  
+        toast.error("Failed to initiate KYC session");
+      }
+  
     } catch (error) {
-
+  
+      console.error(error);
+  
       toast.error("Failed to initiate KYC session");
+  
+      setStarted(false);
     }
   };
 
@@ -303,12 +320,9 @@ function DocumentUpload({ setSelfieAllowed }) {
           </p>
 
           <button
-            onClick={() => {
-
-              setStarted(true);
-
-              startKycSession();
-            }}
+            
+            onClick={startKycSession}
+            
             className="
               mt-8
               w-full
@@ -611,7 +625,14 @@ function App() {
         }
       />
 
-      
+<Route
+  path="/kyc-verification"
+  element={
+    <ProtectedRoute allowed={selfieAllowed}>
+      <FaceDetection />
+    </ProtectedRoute>
+  }
+/>
       
 
       <Route
