@@ -5,7 +5,7 @@ import axios from "axios";
 import {
   useNavigate,
   Routes,
- Route,
+  Route,
   Navigate
 } from "react-router-dom";
 
@@ -14,8 +14,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import FaceDetection from "./FaceDetection";
-
-
 
 function ProtectedRoute({ allowed, children }) {
 
@@ -34,6 +32,10 @@ function DocumentUpload({ setSelfieAllowed }) {
   const [started, setStarted] = useState(false);
 
   const [token, setToken] = useState("");
+
+  const [username, setUsername] = useState("");
+
+  const [customerName, setCustomerName] = useState("");
 
   const [documentType, setDocumentType] = useState("");
 
@@ -59,32 +61,43 @@ function DocumentUpload({ setSelfieAllowed }) {
   const startKycSession = async () => {
 
     try {
-  
+
+      if (!username) {
+
+        toast.error("Please enter username");
+
+        return;
+      }
+
       const response = await axios.post(
-        "http://localhost:8080/kyc/initiate"
+        `http://localhost:8080/kyc/initiate?username=${username}`
       );
-  
+
       if (response.status === 200 && response.data?.body?.token) {
-  
+
         const generatedToken = response.data.body.token;
-  
+
         setToken(generatedToken);
-  
+
         setStarted(true);
-  
+
+        setCustomerName(
+          response.data.body.customerName || username
+        );
+
         toast.success("KYC session started successfully");
-  
+
       } else {
-  
+
         toast.error("Failed to initiate KYC session");
       }
-  
+
     } catch (error) {
-  
+
       console.error(error);
-  
+
       toast.error("Failed to initiate KYC session");
-  
+
       setStarted(false);
     }
   };
@@ -319,12 +332,29 @@ function DocumentUpload({ setSelfieAllowed }) {
             Secure identity verification process for document authentication and fraud prevention.
           </p>
 
-          <button
-            
-            onClick={startKycSession}
-            
+          <input
+            type="text"
+            placeholder="Enter Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="
-              mt-8
+              w-full
+              mt-6
+              p-4
+              rounded-2xl
+              border
+              border-gray-300
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
+          />
+
+          <button
+
+            onClick={startKycSession}
+            className="
+              mt-6
               w-full
               relative
               overflow-hidden
@@ -391,7 +421,7 @@ function DocumentUpload({ setSelfieAllowed }) {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Secure KYC Verification Portal
+            Customer Name: {customerName}
           </p>
 
         </div>
@@ -548,7 +578,7 @@ function DocumentUpload({ setSelfieAllowed }) {
               duration-300
               border
               shadow-md
-          
+
               ${isUploading
                 ? `
                   bg-gray-200
@@ -625,15 +655,14 @@ function App() {
         }
       />
 
-<Route
-  path="/kyc-verification"
-  element={
-    <ProtectedRoute allowed={selfieAllowed}>
-      <FaceDetection />
-    </ProtectedRoute>
-  }
-/>
-      
+      <Route
+        path="/kyc-verification"
+        element={
+          <ProtectedRoute allowed={selfieAllowed}>
+            <FaceDetection />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="*"
