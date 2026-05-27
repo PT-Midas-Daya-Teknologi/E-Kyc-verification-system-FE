@@ -75,6 +75,10 @@ function DocumentUpload({
     "image/png"
   ];
 
+  // =========================================
+  // START KYC SESSION
+  // =========================================
+
   const startKycSession = async () => {
 
     try {
@@ -89,23 +93,28 @@ function DocumentUpload({
       }
 
       const response = await axios.post(
-        `http://localhost:8080/kyc/initiate?username=${username}`
+        `http://localhost:8080/openapi/dev/kyc/initiate?username=${username}`
       );
+
+      console.log(response.data);
+
+      const responseBody =
+        response.data?.body || response.data;
 
       if (
         response.status === 200 &&
-        response.data?.body?.token
+        responseBody?.token
       ) {
 
         const generatedToken =
-          response.data.body.token;
+          responseBody.token;
 
         setToken(generatedToken);
 
         setStarted(true);
 
         setCustomerName(
-          response.data.body.customerName
+          responseBody.customerName
           || username
         );
 
@@ -131,6 +140,10 @@ function DocumentUpload({
       setStarted(false);
     }
   };
+
+  // =========================================
+  // FILE CHANGE
+  // =========================================
 
   const handleFrontFileChange = (e) => {
 
@@ -181,6 +194,10 @@ function DocumentUpload({
     );
   };
 
+  // =========================================
+  // UPLOAD DOCUMENT
+  // =========================================
+
   const handleUpload = async () => {
 
     try {
@@ -227,9 +244,8 @@ function DocumentUpload({
         "Uploading Document Securely..."
       );
 
-      
-
-      const javaFormData = new FormData();
+      const javaFormData =
+        new FormData();
 
       let backendDocumentType = "";
 
@@ -260,7 +276,6 @@ function DocumentUpload({
           "DRIVING_LICENSE";
       }
 
-
       javaFormData.append(
         "file",
         frontFile
@@ -271,108 +286,88 @@ function DocumentUpload({
         backendDocumentType
       );
 
-      
+      // =========================================
+      // JAVA BACKEND API
+      // =========================================
 
-      await axios.post(
-        "http://localhost:8080/kyc/upload",
-        javaFormData,
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-            "Content-Type":
-              "multipart/form-data"
-          },
-
-          onUploadProgress:
-            (progressEvent) => {
-
-              const percentCompleted =
-                Math.round(
-                  (
-                    progressEvent.loaded * 100
-                  ) /
-                  progressEvent.total
-                );
-
-              setUploadProgress(
-                percentCompleted
-              );
-
-              if (
-                percentCompleted > 10
-              ) {
-
-                setStatusText(
-                  "Uploading Document Securely..."
-                );
-              }
-
-              if (
-                percentCompleted > 30
-              ) {
-
-                setStatusText(
-                  "Saving Document..."
-                );
-              }
-
-              if (
-                percentCompleted > 50
-              ) {
-
-                setStatusText(
-                  "Running OCR Analysis..."
-                );
-              }
-
-              if (
-                percentCompleted > 70
-              ) {
-
-                setStatusText(
-                  "Validating Document..."
-                );
-              }
-
-              if (
-                percentCompleted > 90
-              ) {
-
-                setStatusText(
-                  "Final Verification..."
-                );
-              }
-            }
-        }
-      );
-
-     
-
-      const pythonFormData =
-        new FormData();
-
-
-      pythonFormData.append(
-        "id_document_file",
-        frontFile
-      );
-
-      const ocrResponse =
+      const uploadResponse =
         await axios.post(
-          "http://127.0.0.1:8000/ocr_analysis",
-          pythonFormData,
+          "http://localhost:8080/openapi/dev/kyc/upload",
+          javaFormData,
           {
             headers: {
+              Authorization:
+                `Bearer ${token}`,
               "Content-Type":
                 "multipart/form-data"
-            }
+            },
+
+            onUploadProgress:
+              (progressEvent) => {
+
+                const percentCompleted =
+                  Math.round(
+                    (
+                      progressEvent.loaded * 100
+                    ) /
+                    progressEvent.total
+                  );
+
+                setUploadProgress(
+                  percentCompleted
+                );
+
+                if (
+                  percentCompleted > 10
+                ) {
+
+                  setStatusText(
+                    "Uploading Document Securely..."
+                  );
+                }
+
+                if (
+                  percentCompleted > 30
+                ) {
+
+                  setStatusText(
+                    "Saving Document..."
+                  );
+                }
+
+                if (
+                  percentCompleted > 50
+                ) {
+
+                  setStatusText(
+                    "Running OCR Analysis..."
+                  );
+                }
+
+                if (
+                  percentCompleted > 70
+                ) {
+
+                  setStatusText(
+                    "Validating Document..."
+                  );
+                }
+
+                if (
+                  percentCompleted > 90
+                ) {
+
+                  setStatusText(
+                    "Final Verification..."
+                  );
+                }
+              }
           }
         );
 
       console.log(
-        "OCR RESPONSE",
-        ocrResponse.data
+        "UPLOAD RESPONSE",
+        uploadResponse.data
       );
 
       setUploadProgress(100);
@@ -423,6 +418,14 @@ function DocumentUpload({
             .message
         );
 
+      } else if (
+        error.response?.data?.message
+      ) {
+
+        toast.error(
+          error.response.data.message
+        );
+
       } else {
 
         toast.error(
@@ -431,6 +434,10 @@ function DocumentUpload({
       }
     }
   };
+
+  // =========================================
+  // REUPLOAD
+  // =========================================
 
   const handleReupload = () => {
 
@@ -453,11 +460,19 @@ function DocumentUpload({
     );
   };
 
+  // =========================================
+  // SELFIE VERIFICATION
+  // =========================================
+
   const handleSelfieVerification =
     () => {
 
       navigate("/kyc-verification");
     };
+
+  // =========================================
+  // START SCREEN
+  // =========================================
 
   if (!started) {
 
@@ -536,6 +551,10 @@ function DocumentUpload({
       </div>
     );
   }
+
+  // =========================================
+  // DOCUMENT SCREEN
+  // =========================================
 
   return (
 
@@ -708,7 +727,8 @@ function DocumentUpload({
 
             </div>
           )}
-<div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+
+        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
 
           <p className="text-sm text-yellow-700 leading-6">
             Ensure your document is clear and readable.
@@ -716,6 +736,7 @@ function DocumentUpload({
           </p>
 
         </div>
+
         {!uploadCompleted && (
 
           <button
