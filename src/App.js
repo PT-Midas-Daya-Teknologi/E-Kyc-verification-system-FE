@@ -9,13 +9,19 @@ import {
   Navigate
 } from "react-router-dom";
 
-import { ToastContainer, toast } from "react-toastify";
+import {
+  ToastContainer,
+  toast
+} from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
 
 import FaceDetection from "./FaceDetection";
 
-function ProtectedRoute({ allowed, children }) {
+function ProtectedRoute({
+  allowed,
+  children
+}) {
 
   if (!allowed) {
 
@@ -25,7 +31,9 @@ function ProtectedRoute({ allowed, children }) {
   return children;
 }
 
-function DocumentUpload({ setSelfieAllowed }) {
+function DocumentUpload({
+  setSelfieAllowed
+}) {
 
   const navigate = useNavigate();
 
@@ -35,23 +43,32 @@ function DocumentUpload({ setSelfieAllowed }) {
 
   const [username, setUsername] = useState("");
 
-  const [customerName, setCustomerName] = useState("");
+  const [customerName, setCustomerName] =
+    useState("");
 
-  const [documentType, setDocumentType] = useState("");
+  const [documentType, setDocumentType] =
+    useState("");
 
-  const [frontFile, setFrontFile] = useState(null);
+  const [frontFile, setFrontFile] =
+    useState(null);
 
-  const [frontPreview, setFrontPreview] = useState("");
+  const [frontPreview, setFrontPreview] =
+    useState("");
 
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] =
+    useState(0);
 
-  const [statusText, setStatusText] = useState("");
+  const [statusText, setStatusText] =
+    useState("");
 
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] =
+    useState(false);
 
-  const [uploadCompleted, setUploadCompleted] = useState(false);
+  const [uploadCompleted, setUploadCompleted] =
+    useState(false);
 
-  const [isDocumentUploaded, setIsDocumentUploaded] = useState(false);
+  const [isDocumentUploaded,
+    setIsDocumentUploaded] = useState(false);
 
   const allowedTypes = [
     "image/jpeg",
@@ -64,7 +81,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
       if (!username) {
 
-        toast.error("Please enter username");
+        toast.error(
+          "Please enter username"
+        );
 
         return;
       }
@@ -73,30 +92,41 @@ function DocumentUpload({ setSelfieAllowed }) {
         `http://localhost:8080/kyc/initiate?username=${username}`
       );
 
-      if (response.status === 200 && response.data?.body?.token) {
+      if (
+        response.status === 200 &&
+        response.data?.body?.token
+      ) {
 
-        const generatedToken = response.data.body.token;
+        const generatedToken =
+          response.data.body.token;
 
         setToken(generatedToken);
 
         setStarted(true);
 
         setCustomerName(
-          response.data.body.customerName || username
+          response.data.body.customerName
+          || username
         );
 
-        toast.success("KYC session started successfully");
+        toast.success(
+          "KYC session started successfully"
+        );
 
       } else {
 
-        toast.error("Failed to initiate KYC session");
+        toast.error(
+          "Failed to initiate KYC session"
+        );
       }
 
     } catch (error) {
 
       console.error(error);
 
-      toast.error("Failed to initiate KYC session");
+      toast.error(
+        "Failed to initiate KYC session"
+      );
 
       setStarted(false);
     }
@@ -110,7 +140,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
     if (!allowedTypes.includes(file.type)) {
 
-      toast.error("Only JPG and PNG image files are allowed");
+      toast.error(
+        "Only JPG and PNG image files are allowed"
+      );
 
       e.target.value = null;
 
@@ -121,7 +153,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
     if (file.size > maxFileSize) {
 
-      toast.error("Maximum allowed image size is 500 KB");
+      toast.error(
+        "Maximum allowed image size is 500 KB"
+      );
 
       e.target.value = null;
 
@@ -138,9 +172,13 @@ function DocumentUpload({ setSelfieAllowed }) {
 
     setFrontFile(file);
 
-    setFrontPreview(URL.createObjectURL(file));
+    setFrontPreview(
+      URL.createObjectURL(file)
+    );
 
-    toast.success("Document selected successfully");
+    toast.success(
+      "Document selected successfully"
+    );
   };
 
   const handleUpload = async () => {
@@ -149,21 +187,27 @@ function DocumentUpload({ setSelfieAllowed }) {
 
       if (!documentType) {
 
-        toast.error("Please select document type");
+        toast.error(
+          "Please select document type"
+        );
 
         return;
       }
 
       if (!frontFile) {
 
-        toast.error("Please upload document");
+        toast.error(
+          "Please upload document"
+        );
 
         return;
       }
 
       if (!token) {
 
-        toast.error("KYC session not started");
+        toast.error(
+          "KYC session not started"
+        );
 
         return;
       }
@@ -179,75 +223,163 @@ function DocumentUpload({ setSelfieAllowed }) {
 
       setUploadProgress(0);
 
-      setStatusText("Uploading Document Securely...");
+      setStatusText(
+        "Uploading Document Securely..."
+      );
 
-      const formData = new FormData();
+      
+
+      const javaFormData = new FormData();
 
       let backendDocumentType = "";
 
       if (documentType === "Aadhar Card") {
-        backendDocumentType = "AADHAR_CARD";
+
+        backendDocumentType =
+          "AADHAR_CARD";
       }
 
       if (documentType === "PAN Card") {
-        backendDocumentType = "PAN_CARD";
+
+        backendDocumentType =
+          "PAN_CARD";
       }
 
       if (documentType === "Passport") {
-        backendDocumentType = "PASSPORT";
+
+        backendDocumentType =
+          "PASSPORT";
       }
 
-      if (documentType === "Driving License") {
-        backendDocumentType = "DRIVING_LICENSE";
+      if (
+        documentType ===
+        "Driving License"
+      ) {
+
+        backendDocumentType =
+          "DRIVING_LICENSE";
       }
 
-      formData.append("file", frontFile);
 
-      formData.append("documentType", backendDocumentType);
+      javaFormData.append(
+        "file",
+        frontFile
+      );
+
+      javaFormData.append(
+        "documentType",
+        backendDocumentType
+      );
+
+      
 
       await axios.post(
         "http://localhost:8080/kyc/upload",
-        formData,
+        javaFormData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data"
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "multipart/form-data"
           },
 
-          onUploadProgress: (progressEvent) => {
+          onUploadProgress:
+            (progressEvent) => {
 
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
+              const percentCompleted =
+                Math.round(
+                  (
+                    progressEvent.loaded * 100
+                  ) /
+                  progressEvent.total
+                );
 
-            setUploadProgress(percentCompleted);
+              setUploadProgress(
+                percentCompleted
+              );
 
-            if (percentCompleted > 10) {
-              setStatusText("Uploading Document Securely...");
+              if (
+                percentCompleted > 10
+              ) {
+
+                setStatusText(
+                  "Uploading Document Securely..."
+                );
+              }
+
+              if (
+                percentCompleted > 30
+              ) {
+
+                setStatusText(
+                  "Saving Document..."
+                );
+              }
+
+              if (
+                percentCompleted > 50
+              ) {
+
+                setStatusText(
+                  "Running OCR Analysis..."
+                );
+              }
+
+              if (
+                percentCompleted > 70
+              ) {
+
+                setStatusText(
+                  "Validating Document..."
+                );
+              }
+
+              if (
+                percentCompleted > 90
+              ) {
+
+                setStatusText(
+                  "Final Verification..."
+                );
+              }
             }
+        }
+      );
 
-            if (percentCompleted > 25) {
-              setStatusText("Processing Document...");
-            }
+     
 
-            if (percentCompleted > 45) {
-              setStatusText("Running OCR Extraction...");
-            }
+      const pythonFormData =
+        new FormData();
 
-            if (percentCompleted > 65) {
-              setStatusText("Validating Document Authenticity...");
-            }
 
-            if (percentCompleted > 85) {
-              setStatusText("Final Verification...");
+      pythonFormData.append(
+        "id_document_file",
+        frontFile
+      );
+
+      const ocrResponse =
+        await axios.post(
+          "http://127.0.0.1:8000/ocr_analysis",
+          pythonFormData,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data"
             }
           }
-        }
+        );
+
+      console.log(
+        "OCR RESPONSE",
+        ocrResponse.data
       );
 
       setUploadProgress(100);
 
-      setStatusText("Finalizing Verification...");
+      setStatusText(
+        "Verification Completed"
+      );
 
       setTimeout(() => {
 
@@ -263,11 +395,15 @@ function DocumentUpload({ setSelfieAllowed }) {
 
         setStatusText("");
 
-        toast.success("KYC Document Uploaded Successfully");
+        toast.success(
+          "KYC Document Uploaded Successfully"
+        );
 
       }, 1200);
 
     } catch (error) {
+
+      console.error(error);
 
       setIsUploading(false);
 
@@ -277,13 +413,21 @@ function DocumentUpload({ setSelfieAllowed }) {
 
       setStatusText("");
 
-      if (error.response?.data?.errors?.length > 0) {
+      if (
+        error.response?.data?.errors
+          ?.length > 0
+      ) {
 
-        toast.error(error.response.data.errors[0].message);
+        toast.error(
+          error.response.data.errors[0]
+            .message
+        );
 
       } else {
 
-        toast.error("Backend connection failed");
+        toast.error(
+          "Backend connection failed"
+        );
       }
     }
   };
@@ -304,13 +448,16 @@ function DocumentUpload({ setSelfieAllowed }) {
 
     setSelfieAllowed(false);
 
-    toast.info("Please upload document again");
+    toast.info(
+      "Please upload document again"
+    );
   };
 
-  const handleSelfieVerification = () => {
+  const handleSelfieVerification =
+    () => {
 
-    navigate("/kyc-verification");
-  };
+      navigate("/kyc-verification");
+    };
 
   if (!started) {
 
@@ -329,14 +476,18 @@ function DocumentUpload({ setSelfieAllowed }) {
           </h1>
 
           <p className="text-gray-500 mt-4 leading-7">
-            Secure identity verification process for document authentication and fraud prevention.
+            Secure identity verification process
+            for document authentication and
+            fraud prevention.
           </p>
 
           <input
             type="text"
             placeholder="Enter Username"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) =>
+              setUsername(e.target.value)
+            }
             className="
               w-full
               mt-6
@@ -353,41 +504,25 @@ function DocumentUpload({ setSelfieAllowed }) {
           <button
 
             onClick={startKycSession}
+
             className="
               mt-6
               w-full
-              relative
-              overflow-hidden
               py-4
               rounded-2xl
               text-lg
               font-semibold
               text-white
-              transition-all
-              duration-300
               bg-gradient-to-r
               from-sky-500
-              via-blue-500
               to-blue-600
               hover:from-sky-600
-              hover:via-blue-600
               hover:to-blue-700
               shadow-lg
-              hover:shadow-2xl
-              hover:-translate-y-0.5
-              active:scale-[0.98]
-              border
-              border-blue-300
             "
           >
 
-            <span className="relative flex items-center justify-center gap-2">
-
-              <span>
-                Start Verification
-              </span>
-
-            </span>
+            Start Verification
 
           </button>
 
@@ -412,7 +547,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow">
 
-            <span className="text-3xl">🪪</span>
+            <span className="text-3xl">
+              🪪
+            </span>
 
           </div>
 
@@ -421,7 +558,9 @@ function DocumentUpload({ setSelfieAllowed }) {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Customer Name: {customerName}
+            Customer Name:
+            {" "}
+            {customerName}
           </p>
 
         </div>
@@ -429,19 +568,50 @@ function DocumentUpload({ setSelfieAllowed }) {
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-2">
+
             Document Type
+
           </label>
 
           <select
             value={documentType}
-            onChange={(e) => setDocumentType(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) =>
+              setDocumentType(
+                e.target.value
+              )
+            }
+            className="
+              w-full
+              border
+              border-gray-300
+              rounded-xl
+              p-4
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+            "
           >
-            <option value="">Select document</option>
-            <option>Aadhar Card</option>
-            <option>PAN Card</option>
-            <option>Passport</option>
-            <option>Driving License</option>
+
+            <option value="">
+              Select document
+            </option>
+
+            <option>
+              Aadhar Card
+            </option>
+
+            <option>
+              PAN Card
+            </option>
+
+            <option>
+              Passport
+            </option>
+
+            <option>
+              Driving License
+            </option>
+
           </select>
 
         </div>
@@ -449,15 +619,19 @@ function DocumentUpload({ setSelfieAllowed }) {
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-3">
+
             Upload Document
+
           </label>
 
-          <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50 text-center hover:bg-blue-100 transition">
+          <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50 text-center">
 
             <input
               type="file"
               accept=".jpg,.jpeg,.png"
-              onChange={handleFrontFileChange}
+              onChange={
+                handleFrontFileChange
+              }
               className="mb-4"
             />
 
@@ -466,7 +640,8 @@ function DocumentUpload({ setSelfieAllowed }) {
             </p>
 
             <p className="text-sm text-gray-500 mt-2">
-              JPG and PNG only (Max 500 KB)
+              JPG and PNG only
+              (Max 500 KB)
             </p>
 
           </div>
@@ -476,26 +651,6 @@ function DocumentUpload({ setSelfieAllowed }) {
         {frontFile && (
 
           <div className="mt-6">
-
-            <div className="flex items-center justify-between mb-3">
-
-              <div>
-
-                <p className="font-semibold text-gray-700">
-                  Document Selected
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  {frontFile.name}
-                </p>
-
-              </div>
-
-              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                Ready
-              </span>
-
-            </div>
 
             <div className="border rounded-2xl overflow-hidden bg-gray-100 shadow">
 
@@ -510,50 +665,50 @@ function DocumentUpload({ setSelfieAllowed }) {
           </div>
         )}
 
-        {isUploading && uploadProgress > 0 && (
+        {isUploading &&
+          uploadProgress > 0 && (
 
-          <div className="mt-8 border border-sky-100 bg-sky-50 rounded-2xl p-5">
+            <div className="mt-8 border border-sky-100 bg-sky-50 rounded-2xl p-5">
 
-            <div className="flex justify-between items-center mb-3">
-
-              <div className="flex items-center gap-2">
-
-                <div className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></div>
+              <div className="flex justify-between items-center mb-3">
 
                 <span className="font-medium text-sky-800">
+
                   {statusText}
+
+                </span>
+
+                <span className="font-semibold text-sky-700">
+
+                  {uploadProgress}%
+
                 </span>
 
               </div>
 
-              <span className="font-semibold text-sky-700">
-                {uploadProgress}%
-              </span>
+              <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-sky-200">
+
+                <div
+                  className="
+                    h-full
+                    rounded-full
+                    bg-gradient-to-r
+                    from-sky-400
+                    to-blue-600
+                    transition-all
+                    duration-500
+                  "
+                  style={{
+                    width:
+                      `${uploadProgress}%`
+                  }}
+                ></div>
+
+              </div>
 
             </div>
-
-            <div className="w-full h-3 bg-white rounded-full overflow-hidden border border-sky-200">
-
-              <div
-                className="
-                  h-full
-                  rounded-full
-                  bg-gradient-to-r
-                  from-sky-400
-                  via-sky-500
-                  to-blue-600
-                  transition-all
-                  duration-500
-                "
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-
-            </div>
-
-          </div>
-        )}
-
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+          )}
+<div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
 
           <p className="text-sm text-yellow-700 leading-6">
             Ensure your document is clear and readable.
@@ -561,40 +716,24 @@ function DocumentUpload({ setSelfieAllowed }) {
           </p>
 
         </div>
-
         {!uploadCompleted && (
 
           <button
             onClick={handleUpload}
             disabled={isUploading}
-            className={`
+            className="
               w-full
               py-4
               rounded-2xl
               mt-8
               text-lg
               font-semibold
-              transition-all
-              duration-300
               border
-              shadow-md
-
-              ${isUploading
-                ? `
-                  bg-gray-200
-                  text-gray-500
-                  border-gray-300
-                  cursor-not-allowed
-                `
-                : `
-                  border-sky-400
-                  bg-sky-50
-                  text-sky-700
-                  hover:bg-sky-100
-                  hover:shadow-lg
-                `
-              }
-            `}
+              border-sky-400
+              bg-sky-50
+              text-sky-700
+              hover:bg-sky-100
+            "
           >
 
             {
@@ -611,17 +750,40 @@ function DocumentUpload({ setSelfieAllowed }) {
           <div className="mt-8">
 
             <button
-              onClick={handleSelfieVerification}
-              className="w-full border border-sky-400 bg-sky-50 text-sky-700 hover:bg-sky-100 py-4 rounded-2xl text-lg font-semibold transition"
+              onClick={
+                handleSelfieVerification
+              }
+              className="
+                w-full
+                border
+                border-sky-400
+                bg-sky-50
+                text-sky-700
+                hover:bg-sky-100
+                py-4
+                rounded-2xl
+                text-lg
+                font-semibold
+              "
             >
+
               Proceed to Selfie Verification
+
             </button>
 
             <button
               onClick={handleReupload}
-              className="w-full text-sm text-gray-500 hover:text-blue-600 mt-4 transition"
+              className="
+                w-full
+                text-sm
+                text-gray-500
+                hover:text-blue-600
+                mt-4
+              "
             >
+
               Re-upload Document
+
             </button>
 
           </div>
@@ -640,7 +802,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
 function App() {
 
-  const [selfieAllowed, setSelfieAllowed] = useState(false);
+  const [selfieAllowed,
+    setSelfieAllowed] =
+    useState(false);
 
   return (
 
@@ -650,7 +814,9 @@ function App() {
         path="/"
         element={
           <DocumentUpload
-            setSelfieAllowed={setSelfieAllowed}
+            setSelfieAllowed={
+              setSelfieAllowed
+            }
           />
         }
       />
@@ -658,15 +824,21 @@ function App() {
       <Route
         path="/kyc-verification"
         element={
-          <ProtectedRoute allowed={selfieAllowed}>
+          <ProtectedRoute
+            allowed={selfieAllowed}
+          >
+
             <FaceDetection />
+
           </ProtectedRoute>
         }
       />
 
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate to="/" replace />
+        }
       />
 
     </Routes>
