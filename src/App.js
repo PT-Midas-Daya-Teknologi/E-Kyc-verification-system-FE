@@ -75,9 +75,7 @@ function DocumentUpload({
     "image/png"
   ];
 
-  // =========================================
-  // START KYC SESSION
-  // =========================================
+ 
 
   const startKycSession = async () => {
 
@@ -141,9 +139,7 @@ function DocumentUpload({
     }
   };
 
-  // =========================================
-  // FILE CHANGE
-  // =========================================
+  
 
   const handleFrontFileChange = (e) => {
 
@@ -194,9 +190,7 @@ function DocumentUpload({
     );
   };
 
-  // =========================================
-  // UPLOAD DOCUMENT
-  // =========================================
+  
 
   const handleUpload = async () => {
 
@@ -286,10 +280,7 @@ function DocumentUpload({
         backendDocumentType
       );
 
-      // =========================================
-      // JAVA BACKEND API
-      // =========================================
-
+      
       const uploadResponse =
         await axios.post(
           "http://localhost:8080/openapi/dev/kyc/upload",
@@ -435,9 +426,7 @@ function DocumentUpload({
     }
   };
 
-  // =========================================
-  // REUPLOAD
-  // =========================================
+  
 
   const handleReupload = () => {
 
@@ -460,9 +449,7 @@ function DocumentUpload({
     );
   };
 
-  // =========================================
-  // SELFIE VERIFICATION
-  // =========================================
+  
 
   const handleSelfieVerification =
     () => {
@@ -470,9 +457,7 @@ function DocumentUpload({
       navigate("/kyc-verification");
     };
 
-  // =========================================
-  // START SCREEN
-  // =========================================
+  
 
   if (!started) {
 
@@ -552,10 +537,7 @@ function DocumentUpload({
     );
   }
 
-  // =========================================
-  // DOCUMENT SCREEN
-  // =========================================
-
+  
   return (
 
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-6">
