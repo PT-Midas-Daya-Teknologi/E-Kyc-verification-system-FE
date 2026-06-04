@@ -444,6 +444,8 @@ function DocumentUpload({ setSelfieAllowed }) {
               JPG and PNG only (Max 500 KB)
             </p>
 
+            
+
           </div>
 
         </div>
@@ -499,6 +501,14 @@ function DocumentUpload({ setSelfieAllowed }) {
 
           </div>
         )}
+<div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+
+<p className="text-sm text-yellow-700 leading-6">
+  Ensure your document is clear and readable.
+  Avoid blur, glare, cropped edges or low-quality images.
+</p>
+
+</div>
 
         {/* Upload Button */}
         {!uploadCompleted && (

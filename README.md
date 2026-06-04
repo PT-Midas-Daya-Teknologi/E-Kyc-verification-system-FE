@@ -13,18 +13,18 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## API configuration
 
-The app uses the Vite proxy configuration in `vite.config.js` to forward requests to the backend at `http://localhost:8098/openapi/dev`.
+The app uses the Vite proxy configuration in `vite.config.js` to forward requests to the backend at `http://localhost:8080/openapi/dev`.
 
 If you want to override the backend origin, set `VITE_API_BASE_URL` in a `.env` file.
 
 ## Available scripts
 
-- `npm run dev` — start the Vite development server
-- `npm run build` — build the production bundle
-- `npm run preview` — preview the production build locally
+- `npm run dev` ï¿½ start the Vite development server
+- `npm run build` ï¿½ build the production bundle
+- `npm run preview` ï¿½ preview the production build locally
 
 ## Notes
 
 - This project uses `@aws-amplify/ui-react-liveness` for live face verification.
-- The frontend assumes the Spring Boot backend is running locally on port `8098`.
+- The frontend assumes the Spring Boot backend is running locally on port `8080`.
 - `src/App.jsx` is the main application entry.
