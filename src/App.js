@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-
 import axios from "axios";
 
 import {
-  useNavigate,
   Routes,
   Route,
-  Navigate
+  Navigate,
+  useNavigate
 } from "react-router-dom";
 
 import {
@@ -16,7 +15,20 @@ import {
 
 import "react-toastify/dist/ReactToastify.css";
 
+import "./index.css";
+
+// First App
 import FaceDetection from "./FaceDetection";
+
+// Second App Pages
+import KYCVerification from "./pages/KYCVerification";
+import RecordingPreview from "./pages/RecordingPreview";
+
+// AWS Amplify
+import { configureAmplify } from "./services/amplifyConfig";
+
+// Initialize Amplify
+configureAmplify();
 
 function ProtectedRoute({
   allowed,
@@ -75,8 +87,7 @@ function DocumentUpload({
     "image/png"
   ];
 
- 
-
+  // START KYC SESSION
   const startKycSession = async () => {
 
     try {
@@ -139,8 +150,7 @@ function DocumentUpload({
     }
   };
 
-  
-
+  // FILE VALIDATION
   const handleFrontFileChange = (e) => {
 
     const file = e.target.files[0];
@@ -190,8 +200,7 @@ function DocumentUpload({
     );
   };
 
-  
-
+  // DOCUMENT UPLOAD
   const handleUpload = async () => {
 
     try {
@@ -280,7 +289,6 @@ function DocumentUpload({
         backendDocumentType
       );
 
-      
       const uploadResponse =
         await axios.post(
           "http://localhost:8080/openapi/dev/kyc/upload",
@@ -318,34 +326,34 @@ function DocumentUpload({
                 }
 
                 if (
-                  percentCompleted > 30
+                  percentCompleted > 25
                 ) {
 
                   setStatusText(
-                    "Saving Document..."
+                    "Processing Document..."
                   );
                 }
 
                 if (
-                  percentCompleted > 50
+                  percentCompleted > 45
                 ) {
 
                   setStatusText(
-                    "Running OCR Analysis..."
+                    "Running OCR Extraction..."
                   );
                 }
 
                 if (
-                  percentCompleted > 70
+                  percentCompleted > 65
                 ) {
 
                   setStatusText(
-                    "Validating Document..."
+                    "Validating Document Authenticity..."
                   );
                 }
 
                 if (
-                  percentCompleted > 90
+                  percentCompleted > 85
                 ) {
 
                   setStatusText(
@@ -376,6 +384,8 @@ function DocumentUpload({
         setIsDocumentUploaded(true);
 
         setSelfieAllowed(true);
+
+        sessionStorage.setItem("selfieAllowed", "true");
 
         setUploadProgress(0);
 
@@ -426,8 +436,7 @@ function DocumentUpload({
     }
   };
 
-  
-
+  // REUPLOAD
   const handleReupload = () => {
 
     setFrontFile(null);
@@ -444,21 +453,21 @@ function DocumentUpload({
 
     setSelfieAllowed(false);
 
+    sessionStorage.removeItem("selfieAllowed");
+
     toast.info(
       "Please upload document again"
     );
   };
 
-  
-
+  // SELFIE VERIFICATION
   const handleSelfieVerification =
     () => {
 
       navigate("/kyc-verification");
     };
 
-  
-
+  // START SCREEN
   if (!started) {
 
     return (
@@ -537,7 +546,7 @@ function DocumentUpload({
     );
   }
 
-  
+  // MAIN SCREEN
   return (
 
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center p-6">
@@ -566,6 +575,7 @@ function DocumentUpload({
 
         </div>
 
+        {/* DOCUMENT TYPE */}
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -617,6 +627,7 @@ function DocumentUpload({
 
         </div>
 
+        {/* FILE UPLOAD */}
         <div className="mt-8">
 
           <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -625,7 +636,7 @@ function DocumentUpload({
 
           </label>
 
-          <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50 text-center">
+          <div className="border-2 border-dashed border-blue-300 rounded-2xl p-6 bg-blue-50 text-center hover:bg-blue-100 transition">
 
             <input
               type="file"
@@ -649,6 +660,7 @@ function DocumentUpload({
 
         </div>
 
+        {/* PREVIEW */}
         {frontFile && (
 
           <div className="mt-6">
@@ -666,6 +678,7 @@ function DocumentUpload({
           </div>
         )}
 
+        {/* PROGRESS */}
         {isUploading &&
           uploadProgress > 0 && (
 
@@ -695,6 +708,7 @@ function DocumentUpload({
                     rounded-full
                     bg-gradient-to-r
                     from-sky-400
+                    via-sky-500
                     to-blue-600
                     transition-all
                     duration-500
@@ -710,6 +724,7 @@ function DocumentUpload({
             </div>
           )}
 
+        {/* WARNING */}
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
 
           <p className="text-sm text-yellow-700 leading-6">
@@ -719,6 +734,7 @@ function DocumentUpload({
 
         </div>
 
+        {/* UPLOAD BUTTON */}
         {!uploadCompleted && (
 
           <button
@@ -748,6 +764,7 @@ function DocumentUpload({
           </button>
         )}
 
+        {/* SELFIE BUTTON */}
         {uploadCompleted && (
 
           <div className="mt-8">
@@ -803,16 +820,18 @@ function DocumentUpload({
   );
 }
 
+// MAIN APP
 function App() {
 
-  const [selfieAllowed,
-    setSelfieAllowed] =
-    useState(false);
+  const [selfieAllowed, setSelfieAllowed] = useState(
+    sessionStorage.getItem("selfieAllowed") === "true"
+  );
 
   return (
 
     <Routes>
 
+      {/* DOCUMENT UPLOAD */}
       <Route
         path="/"
         element={
@@ -824,8 +843,37 @@ function App() {
         }
       />
 
+      {/* SECOND DEVELOPER KYC PAGE */}
       <Route
         path="/kyc-verification"
+        element={
+          <ProtectedRoute
+            allowed={selfieAllowed}
+          >
+
+            <KYCVerification />
+
+          </ProtectedRoute>
+        }
+      />
+
+      {/* RECORDING PAGE */}
+      <Route
+        path="/recording"
+        element={
+          <ProtectedRoute
+            allowed={selfieAllowed}
+          >
+
+            <RecordingPreview />
+
+          </ProtectedRoute>
+        }
+      />
+
+      {/* OPTIONAL FACE DETECTION */}
+      <Route
+        path="/face-detection"
         element={
           <ProtectedRoute
             allowed={selfieAllowed}
@@ -837,6 +885,7 @@ function App() {
         }
       />
 
+      {/* DEFAULT */}
       <Route
         path="*"
         element={
@@ -849,3 +898,4 @@ function App() {
 }
 
 export default App;
+ 

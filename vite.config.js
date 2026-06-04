@@ -15,12 +15,12 @@ export default defineConfig({
     // This eliminates CORS issues completely in development
     proxy: {
       '/api': {
-        target: 'http://localhost:8098/openapi/dev',
+        target: 'http://localhost:8080/openapi/dev',
         changeOrigin: true,
         secure: false,
       },
       '/kyc': {
-        target: 'http://localhost:8098/openapi/dev',
+        target: 'http://localhost:8080/openapi/dev',
         changeOrigin: true,
         secure: false,
       },
