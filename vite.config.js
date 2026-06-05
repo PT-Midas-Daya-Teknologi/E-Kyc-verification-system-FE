@@ -10,21 +10,7 @@ export default defineConfig({
     ]
   },
   server: {
-    port: 3000,
-    // Proxy all /api requests to Spring Boot backend
-    // This eliminates CORS issues completely in development
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080/openapi/dev',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/kyc': {
-        target: 'http://localhost:8080/openapi/dev',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    port: 3000
   },
   resolve: {
     alias: { './runtimeConfig': './runtimeConfig.browser' },
