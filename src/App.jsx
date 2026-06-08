@@ -70,7 +70,7 @@ function DocumentUpload({ setSelfieAllowed }) {
       setIsInitiating(true);
 
       const response = await axios.post(
-        `/kyc/initiate?username=${encodeURIComponent(username)}`
+        import.meta.env.VITE_API_BASE_URL + `/kyc/initiate?username=${encodeURIComponent(username)}`
       );
 
       const body = response.data.body;
@@ -179,7 +179,7 @@ function DocumentUpload({ setSelfieAllowed }) {
       formData.append("documentType", backendDocumentType);
 
       await axios.post(
-        "/kyc/upload",
+        import.meta.env.VITE_API_BASE_URL + "/kyc/upload",
         formData,
         {
           headers: {
