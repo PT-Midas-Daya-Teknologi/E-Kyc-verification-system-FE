@@ -57,4 +57,48 @@ export async function uploadVerificationVideo(videoBlob, sessionId) {
   return data;
 }
 
+/** POST /api/liveness/upload-snapshot — upload single face snapshot for verification */
+export async function uploadLivenessSnapshot(snapshotBlob, sessionId, kycSessionId) {
+  console.log(
+    '[API] uploadLivenessSnapshot START — sessionId:',
+    sessionId,
+    '| kycSessionId:',
+    kycSessionId,
+    '| snapshotSize:',
+    snapshotBlob.size,
+    'bytes | type:',
+    snapshotBlob.type
+  );
+
+  const form = new FormData();
+  form.append('snapshot', snapshotBlob, 'face-snapshot.jpg');
+  form.append('sessionId', sessionId);
+  form.append('kycSessionId', kycSessionId);
+  form.append('timestamp', new Date().toISOString());
+
+  try {
+    console.log(
+      '[API] Sending snapshot to backend...'
+    );
+
+    const { data } = await api.post('/api/liveness/upload-snapshot', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    console.log(
+      '[API] uploadLivenessSnapshot SUCCESS — Response:',
+      JSON.stringify(data, null, 2)
+    );
+
+    return data;
+  } catch (error) {
+    console.error(
+      '[API] uploadLivenessSnapshot FAILED — Error:',
+      error.response?.status,
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+}
+
 
