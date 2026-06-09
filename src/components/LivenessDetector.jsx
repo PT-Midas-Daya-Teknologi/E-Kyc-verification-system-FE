@@ -7,6 +7,7 @@ import {
   createLivenessSession,
   getLivenessResult,
   getAwsCredentials,
+  uploadLivenessSnapshot,
 } from '../services/api';
 import { getKycSessionId } from '../utils/kycSession';
 
@@ -74,20 +75,20 @@ export default function LivenessDetector({
 
   const [initError, setInitError] = useState(null);
 
+  const [snapshot, setSnapshot] = useState(null);
+
   const analysisFinishedRef = useRef(false);
+
+  const snapshotCapturedRef = useRef(false);
 
   const region =
     import.meta.env.VITE_AWS_REGION || 'ap-south-1';
 
   // ───────────────────────────────────────────────────────────
-  // WebSocket Frame Streaming
+  // WebSocket Frame Streaming (DISABLED - now using snapshot)
   // ───────────────────────────────────────────────────────────
 
-  const frameStreamActive =
-    detectorActive &&
-    !loading &&
-    !fetchingResult &&
-    !!sessionId;
+  const frameStreamActive = false;
 
   useFrameWebSocket({
     active: frameStreamActive,
@@ -221,6 +222,84 @@ export default function LivenessDetector({
   }, [credentials]);
 
   // ───────────────────────────────────────────────────────────
+  // Capture Initial Snapshot When Camera Starts
+  // ───────────────────────────────────────────────────────────
+
+  useEffect(() => {
+
+    if (!detectorActive || loading || snapshot) {
+      return;
+    }
+
+    let captureInterval = null;
+
+    const attemptSnapshot = async () => {
+
+      const video = document.querySelector('video');
+
+      if (
+        !video ||
+        video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
+      ) {
+        return;
+      }
+
+      if (snapshotCapturedRef.current) {
+        if (captureInterval) {
+          clearInterval(captureInterval);
+          captureInterval = null;
+        }
+        return;
+      }
+
+      try {
+
+        const blob = await captureFrame();
+
+        if (blob) {
+          snapshotCapturedRef.current = true;
+          setSnapshot(blob);
+
+          console.log(
+            '[LivenessDetector] ✅ SNAPSHOT CAPTURED',
+            '| Size:',
+            blob.size,
+            'bytes',
+            '| Type:',
+            blob.type,
+            '| Timestamp:',
+            new Date().toISOString()
+          );
+
+          if (captureInterval) {
+            clearInterval(captureInterval);
+            captureInterval = null;
+          }
+        }
+
+      } catch (err) {
+        console.warn(
+          '[LivenessDetector] ⚠️ Snapshot capture error:',
+          err.message
+        );
+      }
+    };
+
+    captureInterval = setInterval(
+      attemptSnapshot,
+      500
+    );
+
+    return () => {
+      if (captureInterval) {
+        clearInterval(captureInterval);
+        captureInterval = null;
+      }
+    };
+
+  }, [detectorActive, loading, snapshot]);
+
+  // ───────────────────────────────────────────────────────────
   // Capture Webcam Frame
   // ───────────────────────────────────────────────────────────
 
@@ -287,6 +366,48 @@ export default function LivenessDetector({
       if (!kycSessionId) {
         throw new Error(
           'KYC session not found. Please upload your document and start verification again.'
+        );
+      }
+
+      // Upload snapshot to backend if captured
+      if (snapshot) {
+        console.log(
+          '[LivenessDetector] 📸 UPLOADING SNAPSHOT TO BACKEND',
+          '| Size:',
+          snapshot.size,
+          'bytes',
+          '| SessionId:',
+          sessionId,
+          '| KycSessionId:',
+          kycSessionId
+        );
+
+        try {
+          const uploadResult = await uploadLivenessSnapshot(
+            snapshot,
+            sessionId,
+            kycSessionId
+          );
+
+          console.log(
+            '[LivenessDetector] ✅ SNAPSHOT UPLOAD SUCCESS',
+            '| Backend Response:',
+            JSON.stringify(uploadResult, null, 2)
+          );
+
+        } catch (uploadErr) {
+          console.error(
+            '[LivenessDetector] ❌ SNAPSHOT UPLOAD FAILED (non-blocking)',
+            '| Error:',
+            uploadErr.response?.status || uploadErr.message,
+            '| Details:',
+            uploadErr.response?.data || uploadErr.message
+          );
+          // Continue with result polling even if snapshot upload fails
+        }
+      } else {
+        console.warn(
+          '[LivenessDetector] ⚠️ NO SNAPSHOT AVAILABLE TO UPLOAD'
         );
       }
 
@@ -367,6 +488,7 @@ export default function LivenessDetector({
 
   }, [
     sessionId,
+    snapshot,
     onSuccess,
     onFailure,
     onError
