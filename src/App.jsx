@@ -79,6 +79,9 @@ function DocumentUpload({ setSelfieAllowed }) {
 
       setToken(generatedToken);
 
+      //Websocket changes
+      localStorage.setItem("kyc_token", generatedToken);
+
       if (sessionId) {
         saveKycSessionId(sessionId);
       }
