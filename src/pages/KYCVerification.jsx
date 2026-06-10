@@ -44,6 +44,8 @@ export default function KYCVerification() {
 
   const handleFailure = useCallback((livenessResult) => {
     const attemptCount =
+      livenessResult?.attemptNo ??
+      livenessResult?.pythonResponse?.attempt_no ??
       livenessResult?.attemptCount ??
       livenessResult?.attempt_count ??
       0;
@@ -68,6 +70,8 @@ export default function KYCVerification() {
 
   const canRetry = (livenessResult) => {
     const attemptCount =
+      livenessResult?.attemptNo ??
+      livenessResult?.pythonResponse?.attempt_no ??
       livenessResult?.attemptCount ??
       livenessResult?.attempt_count ??
       0;
