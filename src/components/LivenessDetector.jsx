@@ -369,6 +369,8 @@ export default function LivenessDetector({
         );
       }
 
+      let snapshotResult = null;
+
       // Upload snapshot to backend if captured
       if (snapshot) {
         console.log(
@@ -394,6 +396,22 @@ export default function LivenessDetector({
             '| Backend Response:',
             JSON.stringify(uploadResult, null, 2)
           );
+
+          // Store snapshot result for face verification data
+          snapshotResult = uploadResult;
+
+          // Log face verification details from Python API
+          if (uploadResult?.confidence || uploadResult?.finalResult) {
+            console.log(
+              '[LivenessDetector] 🔍 FACE VERIFICATION RESULTS FROM PYTHON API:',
+              {
+                finalResult: uploadResult.finalResult,
+                confidence: uploadResult.confidence,
+                verified: uploadResult.verified,
+                attemptNo: uploadResult.attemptNo
+              }
+            );
+          }
 
         } catch (uploadErr) {
           console.error(
@@ -455,15 +473,35 @@ export default function LivenessDetector({
 
       console.log('[LivenessDetector] Final Result:', result);
 
+      // Merge snapshot result with polled result for comprehensive data
+      const finalResult = {
+        ...result,
+        // Include face verification data from snapshot upload if not already present
+        pythonResponse: snapshotResult?.pythonResponse || result?.pythonResponse,
+        finalResult: result.finalResult || snapshotResult?.finalResult,
+        confidence: result.confidence !== undefined && result.confidence !== null 
+          ? result.confidence 
+          : snapshotResult?.confidence,
+        verified: result.verified !== undefined && result.verified !== null 
+          ? result.verified 
+          : snapshotResult?.verified,
+        attemptNo: result.attemptNo || snapshotResult?.attemptNo
+      };
+
+      console.log(
+        '[LivenessDetector] 📋 COMPLETE VERIFICATION DATA:',
+        JSON.stringify(finalResult, null, 2)
+      );
+
       const succeeded =
         result.overallStatus === 'SUCCESS' ||
         (!result.overallStatus && result.isLive === true);
 
       if (succeeded) {
-        setVerificationData(result);
-        onSuccess(result);
+        setVerificationData(finalResult);
+        onSuccess(finalResult);
       } else {
-        onFailure(result);
+        onFailure(finalResult);
       }
 
     } catch (err) {

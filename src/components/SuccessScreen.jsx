@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Video, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Video, ShieldCheck, CheckCircle } from 'lucide-react';
 
 function formatLivenessStatus(result) {
   if (result?.liveness_status) {
@@ -15,8 +15,10 @@ function formatLivenessStatus(result) {
 
 export default function SuccessScreen({ result, onViewRecording }) {
   const livenessStatus = formatLivenessStatus(result);
-  const faceScore = result?.face_score ?? 'N/A';
-  const finalResult = result?.final_result ?? 'N/A';
+  const finalResult = result?.pythonResponse?.final_result ?? result?.finalResult ?? 'N/A';
+  const confidence = result?.pythonResponse?.confidence ?? 'N/A';
+  const verified = result?.pythonResponse?.verified ?? 'N/A';
+  const attemptNo = result?.pythonResponse?.attempt_no ?? result?.attemptNo ?? 'N/A';
 
   return (
     <motion.div
@@ -46,14 +48,48 @@ export default function SuccessScreen({ result, onViewRecording }) {
           </span>
           <span className="text-emerald-600 font-semibold text-right">{livenessStatus}</span>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-700 font-medium">Face Score</span>
-          <span className="text-emerald-600 font-bold">{faceScore}</span>
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-emerald-700 font-medium">Final Result</span>
-          <span className="text-emerald-600 font-bold">{finalResult}</span>
-        </div>
+
+        {/* Face verification results from Python API */}
+        {(confidence !== 'N/A' || finalResult !== 'N/A') && (
+          <>
+            <div className="border-t border-emerald-200 pt-2 space-y-2">
+              <div className="flex items-center gap-2 text-xs text-emerald-700 font-medium mb-1">
+                <CheckCircle size={12} />
+                Face Verification Details:
+              </div>
+
+              {finalResult !== 'N/A' && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-emerald-700">Face Match Result</span>
+                  <span className="text-emerald-600 font-bold">{finalResult}</span>
+                </div>
+              )}
+
+              {confidence !== 'N/A' && typeof confidence === 'number' && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-emerald-700">Face Score</span>
+                  <span className="text-emerald-600 font-bold">{confidence}</span>
+                </div>
+              )}
+
+              {verified !== 'N/A' && typeof verified === 'boolean' && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-emerald-700">Face Verified</span>
+                  <span className={`font-bold ${verified ? 'text-emerald-600' : 'text-orange-600'}`}>
+                    {verified ? 'Yes' : 'No'}
+                  </span>
+                </div>
+              )}
+
+              {attemptNo !== 'N/A' && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-emerald-700">Attempt</span>
+                  <span className="text-emerald-600 font-bold">{attemptNo} / 3</span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {onViewRecording && (
