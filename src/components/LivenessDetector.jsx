@@ -88,7 +88,7 @@ export default function LivenessDetector({
   // WebSocket Frame Streaming (DISABLED - now using snapshot)
   // ───────────────────────────────────────────────────────────
 
-  const frameStreamActive = false;
+  const frameStreamActive = true;
 
   useFrameWebSocket({
     active: frameStreamActive,

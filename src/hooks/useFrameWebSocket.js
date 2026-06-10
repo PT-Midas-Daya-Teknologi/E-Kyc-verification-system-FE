@@ -94,7 +94,7 @@ export function useFrameWebSocket({ active, sessionId }) {
         const token = localStorage.getItem("kyc_token");
 
 const ws = new WebSocket(
-  `${wsUrl}?token=${encodeURIComponent(token)}`
+  `${wsUrl}/${encodeURIComponent(token)}`
 );
 
 
