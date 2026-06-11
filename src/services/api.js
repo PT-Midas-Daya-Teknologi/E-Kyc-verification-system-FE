@@ -8,6 +8,17 @@ const api = axios.create({
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
+// passed token for liveness
+api.interceptors.request.use((config) => {
+
+  const token = localStorage.getItem("kyc_token");
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
 
 // Response interceptor — log errors for debugging
 api.interceptors.response.use(
