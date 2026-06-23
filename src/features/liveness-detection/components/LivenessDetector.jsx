@@ -8,13 +8,13 @@ import {
   getLivenessResult,
   getAwsCredentials,
   uploadLivenessSnapshot,
-} from '../services/api';
-import { getKycSessionId } from '../utils/kycSession';
+} from '../services/livenessApi';
+import { getKycSessionId } from '../../../utils/kycSession';
 
-import { setCachedCredentials } from '../services/credentialResolver';
-import { useFrameWebSocket } from '../hooks/useFrameWebSocket';
+import { setCachedCredentials } from '../../../services/credentialResolver';
+import { useFrameWebSocket } from '../../../hooks/useFrameWebSocket';
 
-import Spinner from './Spinner';
+import Spinner from '../../../components/Spinner';
 
 // ─────────────────────────────────────────────────────────────
 // Error Messages

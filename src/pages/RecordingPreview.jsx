@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, CheckCircle2 } from 'lucide-react';
-import PageShell from '../components/PageShell';
-import { uploadVerificationVideo } from '../services/api';
+import PageShell from '../layouts/PageShell';
+import { uploadVerificationVideo } from '../features/liveness-detection/services/livenessApi';
 
 export default function RecordingPreview() {
   const { state } = useLocation();

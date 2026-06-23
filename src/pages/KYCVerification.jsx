@@ -1,23 +1,33 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   getKycSessionId,
   resetAttemptCount,
   setAttemptCount,
 } from '../utils/kycSession';
-import PageShell from '../components/PageShell';
-import VerificationCard from '../components/VerificationCard';
-import LivenessDetector from '../components/LivenessDetector';
-import SuccessScreen from '../components/SuccessScreen';
-import FailureScreen from '../components/FailureScreen';
-import ErrorScreen from '../components/ErrorScreen';
+
+// Layouts
+import PageShell from '../layouts/PageShell';
+
+// Features - AWS Liveness
+import VerificationCard from '../features/liveness-detection/components/VerificationCard';
+import LivenessDetector from '../features/liveness-detection/components/LivenessDetector';
+import SuccessScreen from '../features/liveness-detection/components/SuccessScreen';
+import FailureScreen from '../features/liveness-detection/components/FailureScreen';
+import ErrorScreen from '../features/liveness-detection/components/ErrorScreen';
+import LivenessMethodSelector from '../features/liveness-detection/components/LivenessMethodSelector';
+
+// Features - LiveKit Liveness
+import LiveKitDetector from '../features/liveness-detection-livekit/components/LiveKitDetector';
 
 const STEP = {
   IDLE: 'idle',
-  LIVENESS: 'liveness',
+  METHOD_SELECT: 'method_select',
+  LIVENESS_AWS: 'liveness_aws',
+  LIVENESS_LIVEKIT: 'liveness_livekit',
   SUCCESS: 'success',
   FAILURE: 'failure',
   ERROR: 'error',
@@ -30,7 +40,15 @@ export default function KYCVerification() {
   const navigate = useNavigate();
 
   const handleStart = useCallback(() => {
-    setStep(STEP.LIVENESS);
+    setStep(STEP.METHOD_SELECT);
+  }, []);
+
+  const handleMethodSelect = useCallback((method) => {
+    if (method === 'aws') {
+      setStep(STEP.LIVENESS_AWS);
+    } else if (method === 'livekit') {
+      setStep(STEP.LIVENESS_LIVEKIT);
+    }
   }, []);
 
   const handleSuccess = useCallback((livenessResult) => {
@@ -90,7 +108,6 @@ export default function KYCVerification() {
 
   return (
     <PageShell>
-      <ToastContainer position="top-right" autoClose={4000} />
       <AnimatePresence mode="wait">
         {step === STEP.IDLE && (
           <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -98,9 +115,26 @@ export default function KYCVerification() {
           </motion.div>
         )}
 
-        {step === STEP.LIVENESS && (
-          <motion.div key="liveness" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        {step === STEP.METHOD_SELECT && (
+          <motion.div key="method" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LivenessMethodSelector onSelect={handleMethodSelect} onBack={handleRetry} />
+          </motion.div>
+        )}
+
+        {step === STEP.LIVENESS_AWS && (
+          <motion.div key="liveness-aws" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <LivenessDetector
+              onSuccess={handleSuccess}
+              onFailure={handleFailure}
+              onError={handleError}
+              onUserCancel={handleCancel}
+            />
+          </motion.div>
+        )}
+
+        {step === STEP.LIVENESS_LIVEKIT && (
+          <motion.div key="liveness-livekit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LiveKitDetector
               onSuccess={handleSuccess}
               onFailure={handleFailure}
               onError={handleError}
